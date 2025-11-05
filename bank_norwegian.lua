@@ -165,36 +165,41 @@ function RefreshAccount (account, since)
     if since then
         sinceString = os.date("%Y-%m-%d", since)
     end
-    local transactionApiUrl = string.format("/api/v1/transaction/GetTransactionsFromTo?accountNo=%s&getLastDays=true&fromLastEOC=false&dateFrom=%s&dateTo=&coreDown=false", account['accountNumber'],  sinceString)
-    
-    local transactionsData = JSON(connection:get(baseUrl .. transactionApiUrl, "", "", {Accept = "application/json"})):dictionary()
 
     local transactions = {}
-    for i, aTransaction in ipairs(transactionsData) do
-        local transaction = {
-            name = aTransaction['merchantName'],
-            accountNumber = aTransaction['foreignAccountNo'],
-            -- bankCode = aTransaction['merchantName'],
-            amount = aTransaction['currencyAmount'],
-            currency = aTransaction['currencyCode'],
-            bookingDate = strToDate(aTransaction['transactionDate']),
-            valueDate = strToDate(aTransaction['valueDate']),
-            purpose = aTransaction['message'],
-            transactionCode = aTransaction['bnTransactionTypeID'],
-            -- textKeyExtension = aTransaction['merchantName'],
-            -- purposeCode = aTransaction['transactionTypeText'],
-            -- bookingKey = aTransaction['merchantName'],
-            bookingText = aTransaction['transactionTypeText'],
-            -- primanotaNumber = aTransaction['merchantName'],
-            -- batchReference = aTransaction['merchantName'],
-            endToEndReference = aTransaction['reference'],
-            -- mandateReference = aTransaction['merchantName'],
-            creditorId = aTransaction['mccName'],
-            -- returnReason = aTransaction['merchantName'],
-            booked = aTransaction['isBooked'],
-        }
-        table.insert(transactions, transaction)
+
+    for _, lastDaysString in ipairs{ "true", "false" } do
+        local transactionApiUrl = string.format("/api/v1/transaction/GetTransactionsFromTo?accountNo=%s&getLastDays=%s&fromLastEOC=false&dateFrom=%s&dateTo=&coreDown=false", account['accountNumber'], lastDaysString, sinceString)
+        
+        local transactionsData = JSON(connection:get(baseUrl .. transactionApiUrl, "", "", {Accept = "application/json"})):dictionary()
+        for i, aTransaction in ipairs(transactionsData) do
+            local transaction = {
+                name = aTransaction['merchantName'],
+                accountNumber = aTransaction['foreignAccountNo'],
+                -- bankCode = aTransaction['merchantName'],
+                amount = aTransaction['currencyAmount'],
+                currency = aTransaction['currencyCode'],
+                bookingDate = strToDate(aTransaction['transactionDate']),
+                valueDate = strToDate(aTransaction['valueDate']),
+                purpose = aTransaction['message'],
+                transactionCode = aTransaction['bnTransactionTypeID'],
+                -- textKeyExtension = aTransaction['merchantName'],
+                -- purposeCode = aTransaction['transactionTypeText'],
+                -- bookingKey = aTransaction['merchantName'],
+                bookingText = aTransaction['transactionTypeText'],
+                -- primanotaNumber = aTransaction['merchantName'],
+                -- batchReference = aTransaction['merchantName'],
+                endToEndReference = aTransaction['reference'],
+                -- mandateReference = aTransaction['merchantName'],
+                creditorId = aTransaction['mccName'],
+                -- returnReason = aTransaction['merchantName'],
+                booked = aTransaction['isBooked'],
+            }
+            table.insert(transactions, transaction)
+        end
     end
+
+
 
     local creditcardData = JSON(connection:get(baseUrl .. "/api/mypage/creditcard/", "", "", {Accept = "application/json"})):dictionary()
     local balance = creditcardData['balance']
